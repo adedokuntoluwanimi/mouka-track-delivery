@@ -71,7 +71,6 @@ function applyTheme() {
   document.querySelector('meta[name="theme-color"]').content = dark ? '#0f1620' : '#f6f7f8';
   app.querySelectorAll('[data-action="theme"]').forEach(button =>
     button.setAttribute('aria-pressed',String(button.dataset.id === themePreference)));
-  app.querySelector('[data-action="side-dark"]')?.setAttribute('aria-checked',String(dark));
 }
 themeMedia.addEventListener('change',applyTheme);
 applyTheme();
@@ -284,10 +283,7 @@ function tripTable(records, label, blank, numbers) {
 // ---- Dispatch overview ----
 const openTrips = () => trackingTrips().filter(t => t.status !== 'Delivered');
 const eventTime = (t, pattern) => t.events.find(([label]) => pattern.test(label))?.[1];
-const minutes = time => { const [h,m] = String(time).split(':').map(Number); return h * 60 + m; };
-const clock = value => `${String(Math.floor(value/60)).padStart(2,'0')}:${String(value%60).padStart(2,'0')}`;
 const plural = (count, one, many = one + 's') => `${count} ${count === 1 ? one : many}`;
-const rideDocs = ['Vehicle registration','Insurance certificate','Roadworthiness certificate'];
 const rideFilters = [['all','All'],['trip','On a trip'],['free','Ready'],['attention','Attention']];
 
 // Everything the overview needs to know about one vehicle.
@@ -408,114 +404,6 @@ function overviewPicker(list, selected) {
   </aside>`;
 }
 
-function overviewDetails(ride) {
-  const {vehicle} = ride;
-  const trip = ride.trip || state.trips.find(t => t.truck === vehicle.id);
-  const none = text => `<p class="ov-none">${icon('box')} ${text}</p>`;
-  const received = name => vehicle.review === 'Verified' || vehicle.docs?.includes(name);
-  const panel = (title, note, content) => `<section class="ov-panel"><header><h2>${title}</h2><small>${note}</small></header>${content}</section>`;
-  return `<div class="ov-three">
-    ${panel('Delivery stops', trip ? `${esc(trip.id)}${ride.trip ? '' : ' · ' + esc(trip.status)}` : 'No trip on record', trip ?
-      `<progress class="ov-meter" value="${trip.done}" max="${trip.stops.length}" aria-label="${trip.done} of ${trip.stops.length} stops confirmed"></progress>
-      <ol class="ov-stops"><li class="done"><i>${icon('bay')}</i><span><strong>${esc(trip.depot)}</strong><small>Pickup depot</small></span></li>
-      ${trip.stops.map((stop,i) => `<li class="${i < trip.done ? 'done' : i === trip.done && trip.status === 'In transit' ? 'next' : ''}"><i>${i < trip.done ? icon('check') : i + 1}</i><span><strong>${esc(stop)}</strong><small>${i < trip.done ? 'Delivered' : i === trip.done && trip.status === 'In transit' ? 'Next stop' : 'Pending'}</small></span></li>`).join('')}</ol>` :
-      none('This truck has no delivery stops.'))}
-    ${panel('Trip activity', trip ? 'Newest first' : 'No history', trip ?
-      `<ol class="ov-history">${trip.events.slice(0,5).map(([label,time]) => `<li><strong>${esc(label)}</strong><small>${esc(time)} WAT</small></li>`).join('')}</ol>` :
-      none('Activity appears when this truck gets a trip.'))}
-    ${panel('Vehicle and documents', esc(vehicle.id), `<dl class="ov-spec">${[['Driver',vehicle.driver],['Operator',vehicle.operator],['Type',vehicle.type],['Verification',vehicle.review]].map(([key,value]) => `<div><dt>${key}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl>
-      <ul class="ov-docs">${rideDocs.map(name => `<li class="${received(name)?'yes':''}">${icon(received(name)?'check':'clock')}<span>${name}</span><small>${received(name)?'Received':'Missing'}</small></li>`).join('')}</ul>
-      <a class="ov-more" href="#/truck/${esc(vehicle.id)}">Open truck record ${icon('chevron')}</a>`)}
-  </div>`;
-}
-
-function overviewBrief(tasks) {
-  const attention = active().filter(t => stale(truck(t.truck))).length;
-  const most = Math.max(1,...tasks.map(task => task.count));
-  const headline = attention ? `${plural(attention,'trip needs','trips need')} a position check.` :
-    tasks.length ? 'No GPS alerts. A few items are waiting for you.' : 'Everything is on track.';
-  return `<section class="ov-card ov-brief" aria-label="Operations brief">
-    <p class="ov-flag">${auroraMark()}Operations brief · from workspace records</p>
-    <h2>${headline}</h2>
-    ${tasks.length ? `<div class="ov-brief-columns"><div><h3>Open items</h3>
-    <ul class="ov-causes">${tasks.map(task => `<li><a href="#/${esc(task.path)}"><b>${String(task.count).padStart(2,'0')}</b><span>${task.cause}</span><progress value="${task.count}" max="${most}" aria-hidden="true"></progress></a></li>`).join('')}</ul></div>
-    <div><h3>Next steps · for your review</h3>
-    <div class="ov-tasks">${tasks.map(task => `<label class="ov-task"><input type="checkbox" value="${task.key}"><span><strong>${esc(task.title)}</strong><small>${task.note}</small></span></label>`).join('')}</div></div></div>` : ''}
-    <div class="ov-brief-actions">${tasks.length ? btn('ov-review','Review selected','ov-primary') : ''}<button type="button" class="ov-text" data-action="ov-aurora">Ask Aurora</button></div>
-  </section>`;
-}
-
-function overviewNetwork() {
-  const moving = active().filter(t => trackingRoutes[t.id]);
-  return `<a class="ov-card ov-network td-scope" href="#/tracking" aria-label="Open live tracking. ${plural(active().length,'truck')} on the road">
-    <svg viewBox="185 78 680 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${trackingStreets}
-      ${moving.map(t => {
-        const {path,at} = trackingRoutes[t.id];
-        const late = stale(truck(t.truck));
-        const points = list => list.map(point => point.join(',')).join(' ');
-        return `<polyline class="ov-line ${late?'late':''}" points="${points(path.slice(0,at+1))}"/><polyline class="ov-line ahead" points="${points(path.slice(at))}"/>
-          <circle class="ov-truck-dot ${late?'late':''}" cx="${path[at][0]}" cy="${path[at][1]}" r="11"/><circle class="ov-end" cx="${path.at(-1)[0]}" cy="${path.at(-1)[1]}" r="9"/>`;
-      }).join('')}
-      <circle class="ov-depot" cx="${trackingDepot[0]}" cy="${trackingDepot[1]}" r="10"/></svg>
-    <span class="ov-network-tag"><i></i><strong>Network</strong> ${active().length} on road</span>
-    <span class="ov-network-open">Open live map ${icon('chevron')}</span>
-  </a>`;
-}
-
-function overviewTimeline() {
-  const trips = openTrips().concat(state.trips.filter(t => t.status === 'Delivered')).slice(0,6);
-  const times = trips.flatMap(t => t.events.map(([,time]) => minutes(time))).filter(Number.isFinite);
-  const latest = times.length ? Math.max(...times) : 600;
-  const start = Math.floor((times.length ? Math.min(...times) : 480) / 60) * 60;
-  const end = Math.max(start + 240, Math.ceil((latest + 60) / 60) * 60);
-  const x = value => (value - start) / (end - start) * 1000;
-  const ticks = [];
-  for (let value = start; value <= end; value += Math.max(60, Math.ceil((end-start)/360) * 60)) ticks.push(value);
-  // Bars are drawn in SVG so their positions need no inline styles.
-  const bar = (from, to, look, text) => {
-    const width = Math.max(70, x(to) - x(from));
-    const left = Math.min(x(from), 1000 - width);
-    return `<rect class="${look}" x="${left/10}%" y="8" width="${width/10}%" height="24" rx="12"/><text class="${look}" x="${(left+14)/10}%" y="24">${esc(text)}</text>`;
-  };
-  const marker = `<line class="ov-now" x1="${x(latest)/10}%" x2="${x(latest)/10}%" y1="0" y2="100%"/>`;
-  return `<section class="ov-panel ov-timeline" aria-label="Dispatch timeline">
-    <header><div><h2>Dispatch timeline</h2><small>From trip history. Open requests are dashed. The marker is the latest recorded event.</small></div><a class="ov-more" href="#/deliveries">Open deliveries ${icon('chevron')}</a></header>
-    <div class="ov-scroll"><div class="ov-grid">
-      <div class="ov-row head"><span>Driver</span><svg aria-hidden="true">${ticks.map((value,i) => Math.abs(x(value) - x(latest)) < 70 ? '' : `<text x="${x(value)/10}%" y="19" text-anchor="${i === 0 ? 'start' : value === end ? 'end' : 'middle'}">${clock(value)}</text>`).join('')}
-        <rect class="ov-now-tag" x="${Math.min(x(latest)/10, 90)}%" y="5" width="46" height="21" rx="10" transform="translate(-23 0)"/><text class="ov-now-text" x="${Math.min(x(latest)/10, 90)}%" y="19" text-anchor="middle">${clock(latest)}</text></svg></div>
-      ${trips.map(t => {
-        const {name} = driverContact(truck(t.truck));
-        const stamps = t.events.map(([,time]) => minutes(time)).filter(Number.isFinite);
-        const first = Math.min(...stamps);
-        const released = eventTime(t,/released/i);
-        const status = trackingStatus(t);
-        const look = {'Stale GPS':'late','In transit':'moving','Delivered':'done','Awaiting response':'request'}[status] || 'bay';
-        const split = released ? minutes(released) : undefined;
-        const bars = !stamps.length ? '' : split !== undefined && t.status === 'In transit' ?
-          (split > first ? bar(first,split-4,'past','Loading') : '') + bar(split,Math.max(latest,split+30),look,t.id) :
-          bar(first, t.status === 'Delivered' ? Math.max(...stamps) : t.status === 'Awaiting response' ? first + 90 : Math.max(latest,first+30), look, t.id);
-        return `<a class="ov-row" href="#/trip/${esc(t.id)}" aria-label="${esc(name)}, ${esc(t.id)}, ${esc(status)}">
-          <span class="ov-who">${driverAvatar(name)}<span><strong>${esc(name)}</strong><small>${esc(status)}</small></span></span>
-          <svg aria-hidden="true">${marker}${bars}</svg></a>`;
-      }).join('')}
-    </div></div>
-  </section>`;
-}
-
-function overviewBays() {
-  const busy = loading();
-  return `<section class="ov-panel" aria-label="Loading bays">
-    <header><div><h2>Loading bays</h2><small>${plural(state.locations.reduce((sum,d) => sum + d.bays,0),'bay')} across ${plural(state.locations.length,'depot')}</small></div><a class="ov-more" href="#/loading">Open loading bay ${icon('chevron')}</a></header>
-    <div class="ov-depots">${state.locations.map(depot => `<div><h3>${esc(depot.name)} <small>${esc(depot.area)}</small></h3>
-      <ul>${Array.from({length:depot.bays},(_,i) => {
-        const bay = 'Bay ' + String(i+1).padStart(2,'0');
-        const t = busy.find(item => item.depot === depot.name && item.bay === bay);
-        return t ? `<li class="busy"><a href="#/trip/${esc(t.id)}"><small>${bay}</small><strong>${esc(t.id)}</strong><span>${esc(t.status)}</span></a></li>` :
-          `<li><span><small>${bay}</small><strong>Free</strong><span>No truck</span></span></li>`;
-      }).join('')}</ul></div>`).join('')}</div>
-  </section>`;
-}
-
 function overviewReadiness(list) {
   const groups = [
     ['On a trip', list.filter(r => r.trip).length, 'trip'],
@@ -529,7 +417,7 @@ function overviewReadiness(list) {
     <header><div><h2>Fleet readiness</h2><small>${plural(list.length,'truck')}</small></div><a class="ov-more" href="#/fleet">Fleet directory ${icon('chevron')}</a></header>
     <div class="ov-ready">
       <svg viewBox="0 0 42 42" role="img" aria-label="${esc(groups.map(([label,count]) => `${label}: ${count}`).join(', '))}">${groups.map(([,count,look]) => {
-        const share = count / list.length * 100;
+        const share = list.length ? count / list.length * 100 : 0;
         const arc = `<circle class="${look}" cx="21" cy="21" r="15.915" pathLength="100" stroke-dasharray="${Math.max(0,share - .8)} ${100 - Math.max(0,share - .8)}" stroke-dashoffset="${25 - offset}"/>`;
         offset += share;
         return arc;
@@ -539,9 +427,18 @@ function overviewReadiness(list) {
   </section>`;
 }
 
+function overviewFleetMap() {
+  const inTransit = active();
+  const mapped = inTransit.filter(trip => trackingRoutes[trip.id]);
+  return `<section class="ov-panel ov-fleet-map td-scope" aria-label="Live truck map">
+    <header><div><h2>Live truck map</h2><small>Sample positions · ${mapped.length} of ${inTransit.length} in transit shown</small></div>
+      <a class="ov-more" href="#/tracking">Open live tracking ${icon('chevron')}</a></header>
+    ${mapped.length ? trackingMap(undefined,mapped,{overview:true}) : empty('No truck positions to show','Positions appear when trucks report from the road.')}
+  </section>`;
+}
+
 function dashboard() {
   const open = openTrips();
-  const exceptions = active().filter(t => stale(truck(t.truck)));
   const delivered = state.trips.filter(t => t.status === 'Delivered');
   const reviews = state.fleet.filter(v => v.review === 'Pending review');
   const tasks = overviewTasks();
@@ -567,14 +464,11 @@ function dashboard() {
     ${stat('Open trips',open.length,'','',`${plural(state.trips.length,'trip')} on record`,'deliveries')}
     ${stat('In transit',active().length,open.length ? Math.round(active().length/open.length*100)+'%' : '','calm','share of open trips','tracking')}
     ${stat('Delivered',delivered.length,'','',`${plural(delivered.reduce((sum,t)=>sum+t.done,0),'stop')} confirmed`,'deliveries')}
-    ${stat('Stale GPS',exceptions.length,exceptions.length?'check':'','bad',exceptions.length?'position may be old':'all reporting','tracking')}
     ${stat('Ready trucks',available().length,'','',`${state.fleet.length} in the fleet`,'available')}
     ${stat('Verification',reviews.length,reviews.length?'pending':'','violet','truck registrations','verification')}
   </div>
-  ${selected ? `<div class="ov-hero">${overviewStage(selected)}${overviewPicker(list,selected)}</div>${overviewDetails(selected)}` : empty('No vehicles yet','Registered trucks appear here.')}
-  <div class="ov-two">${overviewBrief(tasks)}${overviewNetwork()}</div>
-  ${overviewTimeline()}
-  <div class="ov-two even">${overviewBays()}${overviewReadiness(list)}</div>
+  <div class="ov-two ov-truck-summary">${overviewFleetMap()}${overviewReadiness(list)}</div>
+  ${selected ? `<div class="ov-hero">${overviewStage(selected)}${overviewPicker(list,selected)}</div>` : ''}
   <section class="ov-panel ov-recent"><header><div><h2>Recent deliveries</h2><small>Latest trips from your depots</small></div><a class="ov-more" href="#/deliveries">All deliveries ${icon('chevron')}</a></header>
     ${tripTable(recent,'Recent deliveries')}</section>`;
 }
@@ -1230,7 +1124,7 @@ function trackingCard(t, selected) {
   </li>`;
 }
 
-function trackingMap(selected, trips) {
+function trackingMap(selected, trips, {overview=false}={}) {
   const vehicle = truck(selected?.truck);
   const route = selected?.status === 'In transit' ? trackingRoutes[selected.id] : undefined;
   const points = list => list.map(p => p.join(',')).join(' ');
@@ -1244,7 +1138,7 @@ function trackingMap(selected, trips) {
     (selected.status === 'Delivered' ? 'This trip is complete. There is no live position.' : 'This truck has not left the depot yet.') :
     stale(vehicle) ? `Last GPS update ${vehicle?.fresh ?? '—'} min ago. The position may be out of date.` : '';
   return `<section class="td-map" aria-label="Delivery map with sample positions">
-    <div class="td-stage"><div class="td-layer" style="transform:scale(${zoom})">
+    <div class="td-stage"><div class="td-layer" style="transform:scale(${overview ? 1 : zoom})">
       <svg viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
         ${trackingStreets}
         ${route ? `<polyline class="td-path ahead" points="${points(route.path.slice(route.at))}"/>
@@ -1253,16 +1147,22 @@ function trackingMap(selected, trips) {
       ${trackingPlaces.map(point => `<span class="td-place" style="${place(point)}" aria-hidden="true"><i></i></span>`).join('')}
       <span class="td-stop pickup" style="${place(trackingDepot)}"><em>Pickup</em><i></i></span>
       ${route ? `<span class="td-stop dropoff" style="${place(route.path.at(-1))}"><i></i><em>Dropoff</em></span>` : ''}
-      ${others.map(t => `<button type="button" class="td-other ${stale(truck(t.truck))?'stale':''}" style="${place(truckPoint(t.id))}" data-action="track-select" data-id="${esc(t.id)}" aria-label="Track ${esc(t.id)}" title="${esc(t.id)}">${icon('truck')}</button>`).join('')}
+      ${others.map(t => {
+        const plate = truck(t.truck)?.plate || t.id;
+        const pin = `class="td-other ${stale(truck(t.truck))?'stale':''}" style="${place(truckPoint(t.id))}"`;
+        const label = `aria-label="Track ${esc(overview ? plate : t.id)}" title="${esc(overview ? plate : t.id)}"`;
+        return overview ? `<a href="#/tracking" data-action="ov-track" data-id="${esc(t.id)}" ${pin} ${label}>${icon('truck')}</a>`
+          : `<button type="button" ${pin} data-action="track-select" data-id="${esc(t.id)}" ${label}>${icon('truck')}</button>`;
+      }).join('')}
       ${position ? `<span class="td-vehicle ${stale(vehicle)?'stale':''}" style="${place(position)}" role="img" aria-label="${esc(vehicle.plate)} position"><span style="transform:rotate(${heading}deg)">${trackingVehicle}</span></span>` : ''}
     </div></div>
     ${caption ? `<p class="td-caption" role="status">${icon(selected.status === 'In transit' ? 'warning' : 'info')}<span>${esc(caption)}</span></p>` : ''}
-    <div class="td-zoom">
+    ${overview ? '' : `<div class="td-zoom">
       <button type="button" data-action="track-zoom-reset" data-id="" aria-label="Reset map view" title="Reset map view">${icon('target')}</button>
       <span><button type="button" data-action="track-zoom-out" data-id="" aria-label="Zoom out">${icon('minus')}</button>
       <output>${Math.round(zoom*100)}%</output>
       <button type="button" data-action="track-zoom-in" data-id="" aria-label="Zoom in">${icon('plus')}</button></span>
-    </div>
+    </div>`}
     <p class="td-sample">Illustrative map</p>
   </section>`;
 }
@@ -1813,13 +1713,19 @@ function fontSizeControl() {
   return field('Font size',`<select data-font-size>${Object.entries(fontSizes).map(([size,label]) =>
     `<option value="${size}"${fontSize===size?' selected':''}>${label}</option>`).join('')}</select>`);
 }
-function administration() {
+function administration(page) {
+  const support = [['users','Users & permissions','users'],['help','Help and support','help'],
+    ['policies','Terms & policies','document'],['driver-sign-in','Driver app','truck']];
   return `<details class="admin-dropup">
-    <summary class="admin-trigger" title="Settings">${icon('settings')}<span><strong>Settings</strong><small>Appearance and text size</small></span>${icon('chevron')}</summary>
+    <summary class="admin-trigger" title="Settings">${icon('settings')}<span><strong>Settings</strong><small>Appearance, team and support</small></span>${icon('chevron')}</summary>
     <div class="admin-panel" aria-label="Settings">
       <div class="admin-appearance"><strong>Appearance</strong><div class="theme-controls" role="group" aria-label="Appearance">
         ${Object.entries(themes).map(([key,[name,symbol]]) => `<button type="button" data-action="theme" data-id="${key}" aria-pressed="${themePreference===key}">${icon(symbol)}${name}</button>`).join('')}
       </div>${fontSizeControl()}</div>
+      <nav aria-label="Team and support">
+        ${support.map(([path,label,symbol]) => `<a href="#/${path}"${page===path?' aria-current="page"':''}>${icon(symbol)}${label}</a>`).join('')}
+        <button type="button" data-action="ov-aurora">${icon('message')} Ask Aurora</button>
+      </nav>
     </div>
   </details>`;
 }
@@ -1864,9 +1770,6 @@ function sideMenu(page, detail) {
   return group('Main menu', ['dispatch','available','loading','tracking','deliveries'].map(item).join('') +
       row('notifications','Notifications','bell',`<em data-unread-count ${unread?'':'hidden'}>${unread}</em>${unread?'<i class="unread"></i>':''}`)) +
     group('Fleet', ['fleet','verification','depots'].map(item).join('')) +
-    group('Team and support', item('users') + row('help','Help and support','help') + row('policies','Terms & policies','document') +
-      `<button type="button" class="nav-link" data-action="ov-aurora" title="Ask Aurora">${icon('message')}<span>Ask Aurora</span></button>
-       <a href="#/driver-sign-in" class="nav-link" title="Driver app">${icon('truck')}<span>Driver app</span></a>`) +
     `<a class="side-card" href="#/available">
       <span class="side-card-head">${tile('truck')}<span><strong>Fleet today</strong><small>${state.fleet.length} trucks registered</small></span></span>
       <progress value="${ready}" max="${Math.max(state.fleet.length,1)}" aria-label="${ready} of ${state.fleet.length} trucks ready"></progress>
@@ -1942,8 +1845,7 @@ function render({focus=false}={}) {
       <button type="button" class="side-search" data-action="search" title="Search">${icon('search')}<span>Search</span><kbd>Ctrl K</kbd></button>
       <nav class="side-scroll" aria-label="Main navigation">${sideMenu(page,id)}</nav>
       <div class="side-footer">
-        <button type="button" class="side-dark" role="switch" aria-checked="${document.documentElement.dataset.theme==='dark'}" data-action="side-dark" title="Dark mode">${icon('moon')}<span>Dark mode</span><i aria-hidden="true"></i></button>
-        ${administration()}${profileMenu(viewer)}</div>
+        ${administration(page)}${profileMenu(viewer)}</div>
     </aside>
     <button type="button" class="overlay ${navOpen?'open':''}" tabindex="-1" aria-label="Close navigation" data-action="menu"></button>
     <div class="workspace"${navOpen?' inert':''}><header class="top"><button type="button" class="icon-btn" data-action="menu" aria-expanded="${navOpen}" aria-controls="side" aria-label="Open navigation">${icon('menu')}</button>
@@ -2289,10 +2191,11 @@ document.addEventListener('click', e=>{
     app.querySelector(`#side-sub-${id}`).hidden = !open;
   } else if (action==='side-go') {
     followShortcut(id);
-  } else if (action==='side-dark') {
-    themePreference = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-    try { localStorage.setItem('mouka-appearance',themePreference); } catch {}
-    applyTheme();
+  } else if (action==='ov-track') {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    trackPending = id;
+    go('tracking');
   } else if (action.startsWith('lb-')) {
     updateBays(action,id);
   } else if (action.startsWith('nt-')) {
@@ -2346,12 +2249,8 @@ document.addEventListener('click', e=>{
   }
   else if (['ov-ride','ov-filter','ov-step','ov-view','ov-spin'].includes(action)) {
     updateOverview(action,id);
-  } else if (action==='ov-review') {
-    const chosen = overviewTasks().filter(task => app.querySelector(`.ov-task input[value="${task.key}"]`)?.checked);
-    openModal('Review next steps', chosen.length ?
-      `<ul class="search-list">${chosen.map(task => `<li><a href="#/${esc(task.path)}" data-action="search-go">${tile(task.symbol)}<span><strong>${esc(task.title)}</strong><small>${esc(task.note)}</small></span>${icon('chevron')}</a></li>`).join('')}</ul>${notice('Open each step to act on it. Nothing changes until you confirm it there.','info')}` :
-      notice('Tick at least one step to review.','warn'));
   } else if (action==='ov-aurora') {
+    closeAdministration();
     toggleAurora(true);
   } else if (action==='sign-out') {
     rememberAccount('');

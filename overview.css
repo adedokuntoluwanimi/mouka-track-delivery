@@ -37,7 +37,7 @@ body:has(.ov-main) .aurora-launcher { display: none; }
 .ov-round { position: relative; justify-content: center; width: 42px; padding: 0; }
 
 /* Totals */
-.ov-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 28px 0; padding: 18px 0; border-block: 1px solid var(--ov-line); }
+.ov-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 28px 0; padding: 18px 0; border-block: 1px solid var(--ov-line); }
 .ov-stat { min-width: 0; padding: 2px 20px; border-left: 1px solid var(--ov-line); }
 .ov-stat:first-child { border-left: 0; padding-left: 4px; }
 .ov-stat > span { display: block; overflow: hidden; color: var(--muted); font-size: .68rem; font-weight: 500; letter-spacing: .06em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
@@ -181,6 +181,9 @@ body:has(.ov-main) .aurora-launcher { display: none; }
 /* Brief and network map */
 .ov-two { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--ov-gap); margin-bottom: var(--ov-gap); }
 .ov-two.even { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+.ov-fleet-map { min-width: 0; }
+.ov-fleet-map .td-map { position: relative; inset: auto; height: clamp(240px, 29vw, 360px); border-radius: 10px; }
+.ov-fleet-map .td-other:focus-visible { z-index: 3; }
 .ov-brief { display: flex; flex-direction: column; padding: 24px 26px; background: var(--ov-brief); }
 .ov-brief .aurora-mark { width: 26px; height: 26px; }
 .ov-brief .aurora-mark img { width: 21px; height: 17px; }

@@ -152,13 +152,6 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
 .side-card-foot b { color: var(--ink); }
 
 /* Dark mode switch */
-.side-dark { display: flex; align-items: center; gap: 10px; width: 100%; padding: 4px 10px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: .82rem; font-weight: 500; }
-.side-dark:hover { background: var(--hover); color: var(--ink); }
-.side-dark span { flex: 1; text-align: left; }
-.side-dark i { position: relative; width: 34px; height: 20px; border-radius: 99px; background: var(--edge-strong); transition: background-color .18s; }
-.side-dark i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px #0004; transition: transform .18s; }
-.side-dark[aria-checked="true"] i { background: #2f6fd6; }
-.side-dark[aria-checked="true"] i::after { transform: translateX(14px); }
 .side-footer { padding-top: 8px; border-top: 1px solid var(--edge); }
 .side-footer .account-dropdown { border-top: 0; padding-top: 0; }
 @media (max-height: 760px) {
@@ -180,8 +173,8 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
 .admin-panel, .account-options { position: absolute; z-index: 20; bottom: calc(100% + 8px); left: 0; width: 216px; padding: 6px; border: 1px solid var(--edge); border-radius: 12px; background: var(--surface); box-shadow: var(--lift); animation: rise .16s ease-out; }
 .admin-panel { max-height: calc(100dvh - 150px); overflow: auto; }
 .admin-panel nav { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--edge); }
-.admin-panel a, .account-options a, .account-options button { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 9px; border: 0; border-radius: 7px; background: transparent; font-size: .8rem; text-align: left; }
-.admin-panel a:hover, .account-options a:hover, .account-options button:hover { background: var(--hover); }
+.admin-panel nav :is(a, button), .account-options a, .account-options button { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 9px; border: 0; border-radius: 7px; background: transparent; font-size: .8rem; text-align: left; }
+.admin-panel nav :is(a, button):hover, .account-options a:hover, .account-options button:hover { background: var(--hover); }
 .admin-panel a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .admin-utilities { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--edge); }
 .admin-appearance { padding: 4px 4px 0; }
@@ -211,9 +204,8 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
   .railed .brand > div, .railed .side-search span, .railed .side-search kbd, .railed .nav-label, .railed .nav-link > span, .railed .nav-link em,
   .railed .admin-trigger > span, .railed .admin-trigger > .icon:last-child, .railed .profile-copy, .railed .profile-trigger > .icon { display: none; }
   .railed .side-search, .railed .nav-link, .railed .admin-trigger, .railed .profile-trigger { justify-content: center; padding-inline: 0; }
-  .railed .nav-fold, .railed .nav-branch ul, .railed .side-card, .railed .side-dark span, .railed .side-dark i { display: none; }
+  .railed .nav-fold, .railed .nav-branch ul, .railed .side-card { display: none; }
   .railed .nav-branch > .nav-link { padding-right: 0; }
-  .railed .side-dark { justify-content: center; padding: 8px 0; }
   .railed .nav-group { padding-bottom: 6px; border-bottom: 1px solid var(--edge); }
   .railed .nav-link { position: relative; }
   .railed .nav-link .unread { position: absolute; }
