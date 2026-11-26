@@ -8,7 +8,6 @@
 <meta name="description" content="Try the Mouka Driver trip and delivery workflow with sample assignments.">
 <link rel="icon" href="mouka.svg" type="image/svg+xml">
 <link rel="stylesheet" href="driver.css">
-<link rel="stylesheet" href="workspace.css">
 <script defer src="preview.js"></script>
 <script defer src="driver.js"></script>
 <script defer src="workspace.js"></script>
@@ -18,15 +17,16 @@
 <div id="driverWorkspace" class="workspace" hidden>
 <button id="navScrim" type="button" class="nav-scrim" aria-label="Close navigation" hidden></button>
 <aside id="driverSidebar" class="driver-sidebar" aria-label="Driver workspace navigation">
-  <div class="side-brand"><img src="mouka.svg" alt="Mouka"><div><strong>Mouka Driver</strong><small>Delivery workspace</small></div><button id="navClose" type="button" class="plain-icon" aria-label="Close navigation"></button></div>
+  <div class="side-brand"><img src="mouka.svg" alt="Mouka"><div><strong>Mouka Driver</strong><small>Delivery workspace</small></div><button id="railToggle" type="button" class="plain-icon" aria-label="Collapse sidebar" title="Collapse sidebar"></button><button id="navClose" type="button" class="plain-icon" aria-label="Close navigation"></button></div>
+  <button type="button" id="sideSearch" class="side-search" title="Search"></button>
   <nav id="driverNav" aria-label="Driver workspace"></nav>
+  <button type="button" id="darkSwitch" class="dark-switch" role="switch" aria-checked="false" title="Dark mode"></button>
   <div class="side-account">
     <div id="driverSettings" class="settings-panel" hidden>
       <strong>Appearance</strong>
       <div id="appearanceOptions" class="theme-options" role="group" aria-label="Appearance"></div>
       <label for="driverFont">Font size</label>
       <select id="driverFont"><option value="compact">Compact</option><option value="standard">Standard</option><option value="large">Large</option></select>
-      <div id="driverSettingsLinks" class="settings-links"></div>
       <button type="button" id="signOut" class="side-link">Sign out</button>
     </div>
     <button id="accountSettings" type="button" aria-expanded="false" aria-controls="driverSettings">
@@ -44,11 +44,13 @@
   <main class="workspace-main"><div id="screen"><p>Loading trips…</p></div></main>
 </div>
 <footer id="dock" hidden></footer>
+<nav id="tabbar" class="tabbar" aria-label="Quick navigation"></nav>
 <dialog id="confirm">
   <h2 id="confirmTitle"></h2><p id="confirmText"></p>
   <div class="dialogActions"><button id="cancel" class="secondary">Cancel</button><button id="approve" class="primary"></button></div>
 </dialog>
 <p id="notice" role="status" aria-live="polite" hidden></p>
+<dialog id="quickSearch" aria-label="Search trips and pages"></dialog>
 </div>
 </body>
 </html>

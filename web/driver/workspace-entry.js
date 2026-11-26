@@ -2,6 +2,7 @@ import {findDriver, normalizePhone, signedInDriver, endDriverSession} from './ac
 
 window.findDriver = (value, allowId) => findDriver(value, allowId, id => getDriverData(id).profile);
 window.normalizePhone = normalizePhone;
+window.loadTrucks = () => import('../truck3d.js');
 
 const driver = signedInDriver();
 if (!driver) {

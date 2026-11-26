@@ -9,16 +9,19 @@
 <script defer src="driver.js"></script>
 </head>
 <body>
-<header class="top"><div class="wrap brand">
-  <img src="mouka.svg" alt="Mouka"><span>Driver</span>
+<header id="topbar" class="top">
+  <button type="button" id="back" aria-label="Back" hidden>&#8592;</button>
+  <img src="mouka.svg" alt="Mouka"><strong id="title">Home</strong>
   <span class="preview">Demo trips</span>
-</div></header>
-<main class="wrap" id="screen"><p>Loading trips…</p></main>
+</header>
+<main><div id="screen"><p>Loading trips…</p></div></main>
 <footer id="dock" hidden></footer>
+<nav id="tabs" aria-label="App sections" hidden></nav>
 <dialog id="confirm">
   <h2 id="confirmTitle"></h2><p id="confirmText"></p>
-  <div class="dialogActions"><button id="cancel" class="secondary">Cancel</button><button id="approve" class="primary"></button></div>
+  <div class="dialogActions"><button id="cancel" class="button">Cancel</button><button id="approve" class="button primary"></button></div>
 </dialog>
+<p id="toast" role="status" aria-live="polite" hidden></p>
 <p id="notice" role="status" aria-live="polite" hidden></p>
 </body>
 </html>

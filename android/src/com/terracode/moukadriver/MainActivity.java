@@ -38,6 +38,7 @@ public final class MainActivity extends Activity {
         web = new WebView(this);
         web.setBackgroundColor(0xfff5f8f5);
         web.getSettings().setJavaScriptEnabled(true);
+        web.getSettings().setDomStorageEnabled(true);
         web.getSettings().setAllowContentAccess(false);
         web.getSettings().setAllowFileAccess(false);
         web.getSettings().setBlockNetworkLoads(true);

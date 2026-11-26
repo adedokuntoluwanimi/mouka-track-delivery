@@ -71,6 +71,7 @@ window.Driver = {
       return;
     }
 
+    trip.log = [...(trip.log || []), [action, action === 'confirm' ? index : null, new Date().toISOString()]];
     progress.trips[id] = trip;
     progress.pending++;
     try {
