@@ -1,3 +1,5 @@
+import {demoId} from './demo-id.js';
+
 const sessionKey = 'mouka-driver:demo-driver';
 const accountKey = 'mouka-driver:demo-activations';
 const driverWorkspaceUrl = '/mouka-track-delivery/driver/index.html';
@@ -10,7 +12,7 @@ function sampleRoster() {
     if (Array.isArray(existing) && existing.length === 2) return existing;
   } catch {}
   const samples = [true,false].map((enrolled,index) => {
-    const id = 'DEMO-' + crypto.randomUUID().slice(0,8).toUpperCase();
+    const id = 'DEMO-' + demoId(4).toUpperCase();
     return {id, name:'Demo account ' + (index + 1), email:id.toLowerCase() + '@example.com', phone:'', depot:'Demo Depot A', enrolled};
   });
   try { localStorage.setItem(storageName, JSON.stringify(samples)); } catch {}
@@ -219,6 +221,7 @@ export function mountDriverAccess(root) {
     const pin = loginPin.read();
     const driver = findDriver(driverIdentifier.value, true);
     const saved = driver && savedAccounts[driver.id];
+    if (driver && !driver.enrolled && saved && !crypto.subtle) return report('accessError','Saved demo PINs need HTTPS. Use demo details to try the workspace here.');
     if (!/^[0-9]{6}$/.test(pin)) return report('accessError','Enter all six digits of your PIN.');
     const submit = event.currentTarget.querySelector('[type=submit]');
     if (submit.disabled) return;
@@ -258,6 +261,7 @@ export function mountDriverAccess(root) {
     const pin = setupPin.read();
     const driver = activation;
     if (!driver || savedAccounts[driver.id]) return;
+    if (!crypto.subtle) return report('pinError','Setting a demo PIN needs HTTPS. Use demo details to try the workspace here.');
     if (!/^[0-9]{6}$/.test(pin)) return report('pinError','Choose a PIN with six digits.');
     const submit = event.currentTarget.querySelector('[type=submit]');
     if (submit.disabled) return;

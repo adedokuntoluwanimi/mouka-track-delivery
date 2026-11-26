@@ -37,6 +37,7 @@ export function saveSession(email, remember) {
 }
 
 async function derive(password, salt) {
+  if (!crypto.subtle) throw new Error('Demo password setup and saved passwords need HTTPS. Use the supplied demo account here.');
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
   const result = await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:new Uint8Array(salt),iterations:600000},key,256);
   return Array.from(new Uint8Array(result), byte => byte.toString(16).padStart(2,'0')).join('');

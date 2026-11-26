@@ -2213,7 +2213,8 @@ async function handleAccess(form, mode, values) {
       }
     }
   } catch {
-    if (form.isConnected) generalError(form,'This browser could not complete the demo account action.');
+    if (form.isConnected) generalError(form,crypto.subtle ? 'This browser could not complete the demo account action.'
+      : 'Demo password setup and saved passwords need HTTPS. Use the supplied demo account here.');
   } finally {
     submit.disabled = false;
   }

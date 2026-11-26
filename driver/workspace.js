@@ -663,7 +663,7 @@ function saveProfile(form, values) {
     return;
   }
   const entry = {
-    id:'profile-' + crypto.randomUUID(),
+    id:'profile-' + window.demoId(),
     driverId:driverProfile.id,
     time:new Date().toISOString(),
     fields:changes.map(([, label]) => label),
@@ -686,7 +686,7 @@ shell.addEventListener('submit', event => {
   if (form.dataset.recordForm === 'profile') return saveProfile(form, values);
   const note = String(values.get('note')).trim();
   if (!note) return;
-  driverData.issues.unshift({trip:String(values.get('trip')), type:String(values.get('type')), note, ref:'ISS-' + crypto.randomUUID().slice(0,6).toUpperCase(), time:new Date().toISOString()});
+  driverData.issues.unshift({trip:String(values.get('trip')), type:String(values.get('type')), note, ref:'ISS-' + window.demoId(3).toUpperCase(), time:new Date().toISOString()});
   reportDraft = {trip:'', type:'', note:''};
   reportFilter = '';
   feedback = saveDriverData() ? 'Saved in this browser.' : 'Saved for this visit. Browser storage is unavailable.';

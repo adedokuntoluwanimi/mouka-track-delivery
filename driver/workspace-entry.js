@@ -1,5 +1,7 @@
 import {findDriver, normalizePhone, signedInDriver, endDriverSession} from './access.js';
+import {demoId} from './demo-id.js';
 
+window.demoId = demoId;
 window.findDriver = (value, allowId) => findDriver(value, allowId, id => getDriverData(id).profile);
 window.normalizePhone = normalizePhone;
 window.loadTrucks = () => import('../truck3d.js');
