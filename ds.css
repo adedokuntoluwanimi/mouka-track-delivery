@@ -151,33 +151,19 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
 .side-card-foot { display: flex; justify-content: space-between; color: var(--muted); font-size: .74rem; }
 .side-card-foot b { color: var(--ink); }
 
-/* Dark mode switch */
 .side-footer { padding-top: 8px; border-top: 1px solid var(--edge); }
 .side-footer .account-dropdown { border-top: 0; padding-top: 0; }
 @media (max-height: 760px) {
   .sidebar { gap: 7px; padding-block: 10px; }
   .side-footer { gap: 4px; }
-  .side-footer .admin-trigger { padding-block: 4px; }
-  .side-footer .admin-trigger small { display: none; }
 }
 
-.admin-dropup { position: relative; }
-.admin-trigger { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--edge); border-radius: 10px; list-style: none; cursor: pointer; }
-.admin-trigger::-webkit-details-marker { display: none; }
-.admin-trigger:hover { background: var(--hover); }
-.admin-trigger > span { flex: 1; min-width: 0; line-height: 1.3; }
-.admin-trigger strong, .admin-trigger small { display: block; font-size: .8rem; white-space: nowrap; }
-.admin-trigger small { font-size: .7rem; }
-.admin-trigger > .icon:last-child { width: .9rem; transform: rotate(-90deg); }
-.admin-dropup[open] .admin-trigger > .icon:last-child { transform: rotate(90deg); }
-.admin-panel, .account-options { position: absolute; z-index: 20; bottom: calc(100% + 8px); left: 0; width: 216px; padding: 6px; border: 1px solid var(--edge); border-radius: 12px; background: var(--surface); box-shadow: var(--lift); animation: rise .16s ease-out; }
-.admin-panel { max-height: calc(100dvh - 150px); overflow: auto; }
-.admin-panel nav { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--edge); }
-.admin-panel nav :is(a, button), .account-options a, .account-options button { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 9px; border: 0; border-radius: 7px; background: transparent; font-size: .8rem; text-align: left; }
-.admin-panel nav :is(a, button):hover, .account-options a:hover, .account-options button:hover { background: var(--hover); }
-.admin-panel a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.admin-utilities { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--edge); }
-.admin-appearance { padding: 4px 4px 0; }
+.account-options { position: absolute; z-index: 20; bottom: calc(100% + 8px); left: 0; width: min(274px, calc(100vw - 32px)); max-height: min(590px, calc(100dvh - 100px)); overflow: auto; padding: 8px; border: 1px solid var(--edge); border-radius: 14px; background: var(--surface); box-shadow: var(--lift); animation: rise .16s ease-out; }
+.account-options nav { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--edge); }
+.account-options > :is(a, button), .account-options nav :is(a, button) { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 9px; border: 0; border-radius: 7px; background: transparent; font-size: .8rem; text-align: left; }
+.account-options :is(a, button):hover { background: var(--hover); }
+.account-options a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.admin-appearance { margin: 6px 0 0; padding: 9px 4px 0; border-top: 1px solid var(--edge); }
 .admin-appearance > strong { display: block; margin-bottom: 5px; font-size: .74rem; }
 .admin-appearance .field { margin-top: 8px; font-size: .74rem; }
 .admin-appearance select { min-height: 32px; font-size: .78rem; }
@@ -202,8 +188,8 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
   .shell.railed { grid-template-columns: 68px minmax(0, 1fr); }
   .railed .brand { flex-direction: column; gap: 6px; }
   .railed .brand > div, .railed .side-search span, .railed .side-search kbd, .railed .nav-label, .railed .nav-link > span, .railed .nav-link em,
-  .railed .admin-trigger > span, .railed .admin-trigger > .icon:last-child, .railed .profile-copy, .railed .profile-trigger > .icon { display: none; }
-  .railed .side-search, .railed .nav-link, .railed .admin-trigger, .railed .profile-trigger { justify-content: center; padding-inline: 0; }
+  .railed .profile-copy, .railed .profile-trigger > .icon { display: none; }
+  .railed .side-search, .railed .nav-link, .railed .profile-trigger { justify-content: center; padding-inline: 0; }
   .railed .nav-fold, .railed .nav-branch ul, .railed .side-card { display: none; }
   .railed .nav-branch > .nav-link { padding-right: 0; }
   .railed .nav-group { padding-bottom: 6px; border-bottom: 1px solid var(--edge); }
@@ -406,27 +392,42 @@ dialog.search-dialog { width: min(580px, calc(100% - 28px)); margin-top: 10vh; }
 .guidance-empty { padding: 24px; color: var(--muted); text-align: center; }
 
 /* Aurora assistant */
-.aurora-launcher { position: fixed; z-index: 14; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 0; height: 48px; padding: 5px; border: 1px solid var(--edge); border-radius: 99px; background: var(--surface); box-shadow: var(--lift); font-weight: 600; transition: transform .15s; }
+.aurora-launcher { position: fixed; z-index: 14; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); display: grid; place-items: center; width: 56px; height: 56px; padding: 0; border: 1px solid #6550b4; border-radius: 50%; background: linear-gradient(145deg, #6146c1, #342267); color: #fff; box-shadow: 0 8px 22px #23164b55; transition: transform .15s; }
 .aurora-launcher:hover { transform: translateY(-2px); }
-.aurora-mark { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: #fff; }
-.aurora-mark img { width: 30px; height: 24px; object-fit: contain; }
-.aurora-launcher-label { max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width .22s, padding .22s; }
-.aurora-launcher:hover .aurora-launcher-label, .aurora-launcher:focus-visible .aurora-launcher-label { max-width: 110px; padding: 0 12px 0 8px; }
-.aurora-panel { position: fixed; z-index: 20; right: 16px; bottom: 16px; display: flex; flex-direction: column; width: min(380px, calc(100vw - 18px)); height: min(600px, calc(100dvh - 32px)); overflow: hidden; border: 1px solid var(--edge); border-radius: 18px; background: var(--surface); box-shadow: 0 24px 60px #0b14263d; animation: rise .2s ease-out; }
-.aurora-header { display: flex; align-items: center; gap: 10px; padding: 12px; border-bottom: 1px solid var(--edge); }
-.aurora-header > div { flex: 1; }
-.aurora-header p { color: var(--muted); font-size: .74rem; }
-.aurora-thread { display: flex; flex: 1; flex-direction: column; gap: 10px; overflow-y: auto; padding: 14px; }
-.aurora-welcome p { margin: 3px 0 10px; color: var(--muted); }
-.aurora-prompts { display: flex; flex-wrap: wrap; gap: 7px; }
-.aurora-bubble { align-self: flex-start; max-width: 90%; padding: 9px 12px; border-radius: 13px 13px 13px 4px; background: var(--soft); white-space: pre-line; }
-.aurora-bubble.from-user { align-self: flex-end; border-radius: 13px 13px 4px 13px; background: #2563d9; color: #fff; }
-.aurora-speaker { display: block; font-size: .68rem; font-weight: 600; opacity: .75; }
+.aurora-launcher .icon, .aurora-emblem .icon { width: 25px; height: 25px; }
+.aurora-panel { position: fixed; z-index: 20; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; width: min(432px, calc(100vw - 32px)); height: min(620px, calc(100dvh - 32px)); overflow: hidden; border: 1px solid var(--edge); border-radius: 22px; background: var(--surface); box-shadow: 0 24px 64px #16102c42; animation: rise .2s ease-out; }
+.aurora-header { display: flex; align-items: center; gap: 12px; padding: 15px 16px; background: #282047; color: #fff; }
+.aurora-header > div { flex: 1; min-width: 0; }
+.aurora-header h2 { margin: 0 0 2px; font-size: 1rem; }
+.aurora-header p { margin: 0; color: #ded5f4; font-size: .74rem; }
+.aurora-header .icon-btn { width: 44px; height: 44px; color: #fff; background: #3e345e; border-color: #655981; }
+.aurora-header .icon-btn:hover { background: #514471; }
+.aurora-emblem { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 13px; background: #e9dfff; color: #48308d; }
+.aurora-thread { display: flex; flex: 1; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 18px; background: var(--soft); }
+.aurora-welcome { display: grid; align-content: start; padding: 18px 3px 4px; }
+.aurora-welcome h3 { margin: 14px 0 4px; font-size: 1.28rem; }
+.aurora-welcome p { margin: 0 0 18px; color: var(--muted); font-size: .85rem; }
+.aurora-prompts { display: grid; gap: 7px; }
+.aurora-prompts .btn { justify-content: flex-start; min-height: 42px; background: var(--surface); text-align: left; white-space: normal; }
+.aurora-prompts .btn:hover { background: var(--hover); }
+.aurora-bubble { align-self: flex-start; max-width: 94%; padding: 10px 13px; border: 1px solid var(--edge); border-radius: 14px 14px 14px 4px; background: var(--surface); font-size: .85rem; white-space: pre-line; overflow-wrap: anywhere; }
+.aurora-bubble p { margin: 3px 0 0; }
+.aurora-bubble.from-user { align-self: flex-end; border-color: #473190; border-radius: 14px 14px 4px 14px; background: #473190; color: #fff; }
+.aurora-speaker { display: block; font-size: .7rem; font-weight: 650; opacity: .86; }
 .aurora-bubble .btn { margin-top: 8px; }
-.aurora-composer { padding: 10px 12px; border-top: 1px solid var(--edge); }
-.aurora-form { display: flex; gap: 7px; }
-.aurora-form .btn { width: 40px; padding: 0; }
-.aurora-footnote { display: flex; align-items: center; gap: 6px; margin-top: 7px; color: var(--muted); font-size: .68rem; }
+.aurora-composer { padding: 12px 14px; border-top: 1px solid var(--edge); }
+.aurora-form { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; }
+.aurora-form input { min-width: 0; min-height: 44px; }
+.aurora-form .btn { width: 44px; padding: 0; border-color: #4d3899; background: #4d3899; color: #fff; }
+.aurora-form .btn:hover { background: #3f2c82; }
+.aurora-footnote { display: flex; align-items: center; gap: 6px; margin: 7px 0 0; color: var(--muted); font-size: .7rem; }
+@media (max-width: 480px) {
+  .aurora-panel { right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); width: calc(100vw - 20px); height: min(620px, calc(100dvh - 20px)); }
+  .aurora-form input { font-size: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aurora-panel, .aurora-launcher { animation: none; transition: none; }
+}
 
 /* Sign-in pages (shared by Admin and Driver) */
 .auth-main { max-width: none; padding: 0; }

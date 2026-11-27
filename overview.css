@@ -14,7 +14,6 @@
 [data-theme="dark"] .ov-main { --ov-accent: #8b74ff; --ov-accent-ink: #c3b6ff; --ov-card: #121b26; --ov-chip: #1d2937; --ov-brief: #211d3d; --ov-line: #29384a; --ov-red: #ff8f98; }
 .workspace > main.ov-main { padding: 32px 36px 56px; }
 .ov-main .page { animation: none; }
-body:has(.ov-main) .aurora-launcher { display: none; }
 .ov-main h2, .ov-main h3 { letter-spacing: -.012em; }
 .ov-main small { font-size: .75rem; line-height: 1.5; }
 
@@ -24,14 +23,10 @@ body:has(.ov-main) .aurora-launcher { display: none; }
 .ov-head h1 { margin: 6px 0; font-size: 2rem; font-weight: 550; letter-spacing: -.03em; }
 .ov-head .ov-sub { font-size: .86rem; font-weight: 400; letter-spacing: 0; text-transform: none; }
 .ov-tools { display: flex; flex: 1; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
-.ov-search, .ov-monitor, .ov-new, .ov-round { display: inline-flex; align-items: center; gap: 9px; height: 42px; border: 1px solid var(--ov-line); border-radius: 99px; background: var(--surface); font-size: .78rem; transition: border-color .15s, box-shadow .15s, transform .15s; }
-.ov-search:hover, .ov-monitor:hover, .ov-round:hover { border-color: var(--edge-strong); box-shadow: var(--shadow); }
+.ov-search, .ov-new, .ov-round { display: inline-flex; align-items: center; gap: 9px; height: 42px; border: 1px solid var(--ov-line); border-radius: 99px; background: var(--surface); font-size: .78rem; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.ov-search:hover, .ov-round:hover { border-color: var(--edge-strong); box-shadow: var(--shadow); }
 .ov-search { flex: 0 1 260px; min-width: 160px; padding: 0 16px; border-color: transparent; background: var(--ov-card); color: var(--muted); }
 .ov-search span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ov-monitor { padding: 0 16px 0 6px; border-color: transparent; background: var(--ov-brief); }
-.ov-monitor .aurora-mark { width: 30px; height: 30px; }
-.ov-monitor .aurora-mark img { width: 24px; height: 20px; }
-.ov-monitor span:last-child { color: var(--ov-accent-ink); font-weight: 550; }
 .ov-new { padding: 0 20px; border-color: transparent; background: #5b3fe8; color: #fff; font-weight: 600; box-shadow: 0 8px 18px #5b3fe83d; }
 .ov-new:hover { transform: translateY(-1px); }
 .ov-round { position: relative; justify-content: center; width: 42px; padding: 0; }
@@ -63,6 +58,10 @@ body:has(.ov-main) .aurora-launcher { display: none; }
 
 /* Selected vehicle and vehicle picker */
 .ov-hero { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--ov-gap); margin-bottom: var(--ov-gap); align-items: stretch; }
+.ov-hero:not(:has(.ov-picker)) { grid-template-columns: minmax(0, 1fr); }
+.ov-hero + .ov-panel { margin-bottom: var(--ov-gap); }
+dialog.ov-vehicle-dialog { width: min(960px, calc(100% - 24px)); }
+.ov-vehicle-dialog > .dialog-body { padding: clamp(8px, 2vw, 16px); }
 .ov-stage { display: flex; flex-direction: column; padding: 24px 26px; }
 .ov-flag { display: flex; align-items: center; gap: 9px; color: var(--ov-accent-ink); font-size: .68rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
 .ov-flag i { width: 11px; height: 11px; border-radius: 50%; background: var(--ov-accent); box-shadow: 0 0 0 4px #5b3fe82b; }
@@ -78,6 +77,7 @@ body:has(.ov-main) .aurora-launcher { display: none; }
 .ov-stage dl .good dd { color: var(--ov-accent-ink); }
 
 .ov-art { position: relative; flex: 1; min-height: 440px; margin-top: 12px; }
+.ov-vehicle-dialog .ov-art { min-height: clamp(270px, 41dvh, 400px); }
 .ov-3d { position: absolute; inset: 40px 0; }
 .ov-3d.ready .ov-fallback, .ov-3d:not(.failed) .ov-fallback { display: none; }
 .ov-fallback { display: flex; align-items: center; justify-content: center; gap: 9px; height: 100%; color: var(--muted); text-align: center; }
@@ -182,11 +182,10 @@ body:has(.ov-main) .aurora-launcher { display: none; }
 .ov-two { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--ov-gap); margin-bottom: var(--ov-gap); }
 .ov-two.even { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
 .ov-fleet-map { min-width: 0; }
-.ov-fleet-map .td-map { position: relative; inset: auto; height: clamp(240px, 29vw, 360px); border-radius: 10px; }
+.ov-fleet-map .td-map { position: relative; inset: auto; height: clamp(460px, 45vw, 610px); border-radius: 10px; }
+.ov-fleet-map .td-other { width: 38px; height: 38px; }
 .ov-fleet-map .td-other:focus-visible { z-index: 3; }
 .ov-brief { display: flex; flex-direction: column; padding: 24px 26px; background: var(--ov-brief); }
-.ov-brief .aurora-mark { width: 26px; height: 26px; }
-.ov-brief .aurora-mark img { width: 21px; height: 17px; }
 .ov-brief > h2 { margin: 16px 0 20px; font-size: 1.25rem; font-weight: 550; line-height: 1.4; }
 .ov-brief-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
 .ov-brief h3 { margin: 0 0 12px; color: var(--muted); font-size: .65rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; }
@@ -320,6 +319,7 @@ a.ov-row:hover { background: var(--ov-card); }
   .ov-stat:nth-child(odd) { border-left: 0; padding-left: 4px; }
   .ov-stat:nth-child(even) { border-left: 1px solid var(--ov-line); padding-left: 20px; }
   .ov-stage { padding: 18px 14px; }
+  .ov-fleet-map .td-map { height: clamp(300px, 65vw, 440px); }
   .ov-stage dl { width: 100%; justify-content: space-between; gap: 8px; }
   .ov-stage dd { font-size: 1rem; }
   .ov-art { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; min-height: 0; }

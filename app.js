@@ -112,7 +112,7 @@ const available = () => state.fleet.filter(t => t.review === 'Verified' && t.sta
 const stale = t => (t?.fresh ?? 100) >= 15;
 const localTime = () => new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Africa/Lagos'}).format();
 const logo = (label='Mouka') => `<img src="/mouka-track-delivery/assets/mouka.svg" alt="${label}">`;
-const auroraMark = () => `<span class="aurora-mark" aria-hidden="true">${logo('')}</span>`;
+const auroraGlyph = '<svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5 12.2 8.8 18.5 11l-6.3 2.2L10 19.5l-2.2-6.3L1.5 11l6.3-2.2L10 2.5Z"/><path d="M19.5 14.5v7m-3.5-3.5h7"/></svg>';
 const route = () => {
   if (location.hash.startsWith('#/')) {
     const path = location.hash.slice(2).replace(/\/$/,'') || 'dispatch';
@@ -395,7 +395,7 @@ function overviewPicker(list, selected) {
     <div class="ov-tabs" role="group" aria-label="Filter vehicles">${rideFilters.map(([key,label]) => `<button type="button" data-action="ov-filter" data-id="${key}" aria-pressed="${overviewFilter === key}">${label}<em>${list.filter(ride => ride.groups.includes(key)).length}</em></button>`).join('')}</div>
     <ul>${list.map(ride => {
       const {vehicle,trip,status} = ride;
-      return `<li data-search="${esc(ride.search)}" data-groups="${ride.groups.join(' ')}" ${shown(ride) ? '' : 'hidden'}><button type="button" data-action="ov-ride" data-id="${esc(vehicle.id)}" aria-pressed="${vehicle.id === selected.vehicle.id}">
+      return `<li data-search="${esc(ride.search)}" data-groups="${ride.groups.join(' ')}" ${shown(ride) ? '' : 'hidden'}><button type="button" data-action="ov-ride" data-id="${esc(vehicle.id)}" aria-haspopup="dialog" aria-pressed="${vehicle.id === selected.vehicle.id}">
         <span class="ov-ride-icon ${vehicle.type === 'Trailer' ? 'trailer' : ''}">${trackingTruckIcon}</span>
         <span class="ov-ride-copy"><strong>${esc(vehicle.plate)}</strong><small>${esc(vehicle.driver)} · ${esc(vehicle.type)}</small><small>${trip ? `${esc(trip.id)} to ${esc(trip.stops.at(-1))}` : esc(vehicle.location)}</small></span>
         ${rideChip(status)}</button></li>`;
@@ -441,7 +441,6 @@ function dashboard() {
   const open = openTrips();
   const delivered = state.trips.filter(t => t.status === 'Delivered');
   const reviews = state.fleet.filter(v => v.review === 'Pending review');
-  const tasks = overviewTasks();
   const list = rides();
   const selected = list.find(ride => ride.vehicle.id === overviewRide) || list[0];
   const viewer = account();
@@ -454,7 +453,6 @@ function dashboard() {
     <div><p>${esc(date())} · ${esc(time)} WAT</p><h1 tabindex="-1">${greeting}${viewer ? ', ' + esc(viewer.name.split(' ')[0]) : ''}</h1><p class="ov-sub">Here’s what needs your attention across today’s operation.</p></div>
     <div class="ov-tools">
       <button type="button" class="ov-search" data-action="search">${icon('search')}<span>Search trips, drivers, trucks</span></button>
-      <button type="button" class="ov-monitor" data-action="ov-aurora">${auroraMark()}<strong>Aurora</strong><span>${plural(tasks.length,'open item')}</span></button>
       <a class="ov-new" href="#/available">${icon('truck')} Find a truck</a>
       <button type="button" class="ov-round" data-action="activity" aria-label="Notifications">${icon('bell')}${unreadCount()?'<i class="unread"></i>':''}</button>
       <a class="ov-round" href="#/help" aria-label="Help and support">${icon('help')}</a>
@@ -467,13 +465,13 @@ function dashboard() {
     ${stat('Ready trucks',available().length,'','',`${state.fleet.length} in the fleet`,'available')}
     ${stat('Verification',reviews.length,reviews.length?'pending':'','violet','truck registrations','verification')}
   </div>
-  <div class="ov-two ov-truck-summary">${overviewFleetMap()}${overviewReadiness(list)}</div>
-  ${selected ? `<div class="ov-hero">${overviewStage(selected)}${overviewPicker(list,selected)}</div>` : ''}
+  <div class="ov-hero">${overviewFleetMap()}${selected ? overviewPicker(list,selected) : ''}</div>
+  ${overviewReadiness(list)}
   <section class="ov-panel ov-recent"><header><div><h2>Recent deliveries</h2><small>Latest trips from your depots</small></div><a class="ov-more" href="#/deliveries">All deliveries ${icon('chevron')}</a></header>
     ${tripTable(recent,'Recent deliveries')}</section>`;
 }
 
-// ---- 3D truck: loaded only when the overview is open ----
+// ---- 3D truck: loaded when a vehicle detail is opened ----
 let truckViewer, truckModule;
 const loadTruckModule = () => (truckModule ||= import('./truck3d.js'));
 function mountTruck(scope=app) {
@@ -490,11 +488,11 @@ function updateOverview(action, id) {
   if (action === 'ov-view') {
     if (id === 'left' || id === 'right') truckViewer?.turn(id === 'left' ? .5 : -.5);
     else truckViewer?.view(id);
-    if (!truckViewer?.spinning) app.querySelector('[data-action="ov-spin"]')?.setAttribute('aria-pressed','false');
+    if (!truckViewer?.spinning) modal.querySelector('[data-action="ov-spin"]')?.setAttribute('aria-pressed','false');
     return;
   }
   if (action === 'ov-spin') {
-    app.querySelector('[data-action="ov-spin"]').setAttribute('aria-pressed',String(Boolean(truckViewer?.toggleSpin())));
+    modal.querySelector('[data-action="ov-spin"]')?.setAttribute('aria-pressed',String(Boolean(truckViewer?.toggleSpin())));
     return;
   }
   const listScroll = app.querySelector('.ov-picker ul')?.scrollTop ?? 0;
@@ -520,6 +518,14 @@ function updateOverview(action, id) {
     }
   }
   app.querySelector(`[data-action="${action}"][data-id="${CSS.escape(id)}"]`)?.focus({preventScroll:true});
+  if (action === 'ov-ride' || action === 'ov-step') openOverviewVehicle(overviewRide);
+}
+
+function openOverviewVehicle(id) {
+  const vehicle = truck(id);
+  if (!vehicle) return;
+  openModal(vehicle.plate + ' · Vehicle details', overviewStage(rideInfo(vehicle)), {vehicle:true});
+  mountTruck(modal);
 }
 // Remember which sections the user has folded away.
 document.addEventListener('toggle', event => {
@@ -1151,7 +1157,7 @@ function trackingMap(selected, trips, {overview=false}={}) {
         const plate = truck(t.truck)?.plate || t.id;
         const pin = `class="td-other ${stale(truck(t.truck))?'stale':''}" style="${place(truckPoint(t.id))}"`;
         const label = `aria-label="Track ${esc(overview ? plate : t.id)}" title="${esc(overview ? plate : t.id)}"`;
-        return overview ? `<a href="#/tracking" data-action="ov-track" data-id="${esc(t.id)}" ${pin} ${label}>${icon('truck')}</a>`
+        return overview ? `<button type="button" data-action="ov-map-vehicle" data-id="${esc(t.truck)}" aria-haspopup="dialog" ${pin} aria-label="View ${esc(plate)}" title="${esc(plate)}">${icon('truck')}</button>`
           : `<button type="button" ${pin} data-action="track-select" data-id="${esc(t.id)}" ${label}>${icon('truck')}</button>`;
       }).join('')}
       ${position ? `<span class="td-vehicle ${stale(vehicle)?'stale':''}" style="${place(position)}" role="img" aria-label="${esc(vehicle.plate)} position"><span style="transform:rotate(${heading}deg)">${trackingVehicle}</span></span>` : ''}
@@ -1607,17 +1613,19 @@ const auroraPrompts = [
   ['Available trucks','Which trucks are available?','truck']
 ];
 function renderAurora() {
+  const onAccessPage = document.body.classList.contains('account-access');
+  if (onAccessPage) auroraOpen = false;
   document.body.classList.toggle('aurora-open',auroraOpen);
   if (auroraOpen && !assistant.querySelector('.aurora-panel')) {
     assistant.insertAdjacentHTML('beforeend',`<aside class="aurora-panel" id="aurora-panel" aria-labelledby="aurora-title">
       <header class="aurora-header">
-        ${auroraMark()}<div><h2 id="aurora-title">Aurora</h2><p>Mouka Dispatch assistant</p></div>
+        <span class="aurora-emblem">${auroraGlyph}</span><div><h2 id="aurora-title">Aurora</h2><p>Mouka Dispatch assistant</p></div>
         ${iconBtn('aurora-close','Close Aurora','close')}
       </header>
       <div class="aurora-thread" role="log" aria-label="Aurora conversation"></div>
       <div class="aurora-composer"><form class="aurora-form" data-form="aurora">
         <label class="sr-only" for="aurora-question">Your question</label>
-        <input id="aurora-question" name="question" placeholder="Ask about a trip or truck" maxlength="400" required autocomplete="off">
+        <input id="aurora-question" name="question" placeholder="Ask Aurora about Dispatch…" maxlength="400" required autocomplete="off">
         <button type="submit" class="btn primary" aria-label="Send question">${icon('send')}</button>
       </form><p class="aurora-footnote">${icon('info')} Answers use sample workspace records.</p></div>
     </aside>`);
@@ -1626,13 +1634,13 @@ function renderAurora() {
     assistant.querySelector('.aurora-panel')?.remove();
   }
   if (!assistant.querySelector('.aurora-launcher')) {
-    assistant.insertAdjacentHTML('afterbegin',`<button type="button" class="aurora-launcher" data-action="aurora-toggle" aria-label="Ask Aurora" aria-expanded="false">
-      ${auroraMark()}<span class="aurora-launcher-label" aria-hidden="true">Ask Aurora</span>
+    assistant.insertAdjacentHTML('afterbegin',`<button type="button" class="aurora-launcher" data-action="aurora-toggle" aria-label="Ask Aurora" title="Ask Aurora" aria-controls="aurora-panel" aria-expanded="false">
+      ${auroraGlyph}
     </button>`);
   }
   assistant.inert = navOpen;
   const toggle = assistant.querySelector('.aurora-launcher');
-  toggle.hidden = auroraOpen || navOpen;
+  toggle.hidden = auroraOpen || navOpen || onAccessPage;
   toggle.setAttribute('aria-expanded',String(auroraOpen));
 }
 // Strip pictographs from assistant messages, including flags, keycaps and joined sequences.
@@ -1640,11 +1648,11 @@ const emojiPattern = /[#*0-9]\uFE0F?\u20E3|[©®™]\uFE0F|(?![©®™])(?:\p{Ex
 function updateAuroraThread() {
   const thread = assistant.querySelector('.aurora-thread');
   if (!thread) return;
-  const welcome = `<div class="aurora-welcome"><h3>What’s happening in dispatch?</h3>
-    <p>Get a summary or look up a specific trip, truck, or depot.</p>
+  const welcome = `<div class="aurora-welcome"><span class="aurora-emblem">${auroraGlyph}</span><h3>What can I help you find?</h3>
+    <p>Look up a trip, truck, or depot, or start with one of these questions.</p>
     <div class="aurora-prompts" aria-label="Suggested questions">${auroraPrompts.map(([label,prompt,symbol]) => btn('aurora-prompt',label,'light',prompt,symbol)).join('')}</div>
   </div>`;
-  thread.innerHTML = welcome + auroraMessages.map(message => {
+  thread.innerHTML = (auroraMessages.length ? '' : welcome) + auroraMessages.map(message => {
     const text = message.user ? message.text : message.text.replace(emojiPattern,'').trim() || 'Try asking about a trip, truck, or depot.';
     return `<div class="aurora-bubble ${message.user?'from-user':''}">
       <span class="aurora-speaker">${message.user?'You':'Aurora'}</span><p>${esc(text)}</p>
@@ -1686,7 +1694,7 @@ function toggleAurora(open) {
   if (open) assistant.querySelector('input')?.focus({preventScroll:true});
   else assistant.querySelector('.aurora-launcher')?.focus({preventScroll:true});
 }
-function profileMenu(viewer) {
+function profileMenu(viewer,page) {
   const avatar = viewer ? esc(initials(viewer.name)) : icon('user');
   return `<div class="account-dropdown">
     <button class="profile profile-trigger" data-action="profile" type="button" aria-label="Workspace account" aria-expanded="false" aria-controls="account-options">
@@ -1696,7 +1704,7 @@ function profileMenu(viewer) {
       <div class="account-summary"><strong>${esc(viewer?.name || 'Guest')}</strong><small>${esc(viewer ? viewer.role + ' · Demo workspace' : 'Demo workspace')}</small></div>
       <button type="button" data-action="account-settings">${icon('settings')} Account settings</button>
       <a href="#/depots">${icon('bay')} Depot settings</a>
-      <a href="#/help">${icon('help')} Help and support</a>
+      ${accountSettingsMenu(page)}
       ${viewer ? `<button type="button" class="account-exit" data-action="sign-out">${icon('log-out')} Log out</button>` :
         `<a class="account-exit" href="#/sign-in">${icon('user')} Sign in</a>`}
     </div></div>`;
@@ -1713,21 +1721,16 @@ function fontSizeControl() {
   return field('Font size',`<select data-font-size>${Object.entries(fontSizes).map(([size,label]) =>
     `<option value="${size}"${fontSize===size?' selected':''}>${label}</option>`).join('')}</select>`);
 }
-function administration(page) {
+function accountSettingsMenu(page) {
   const support = [['users','Users & permissions','users'],['help','Help and support','help'],
     ['policies','Terms & policies','document'],['driver-sign-in','Driver app','truck']];
-  return `<details class="admin-dropup">
-    <summary class="admin-trigger" title="Settings">${icon('settings')}<span><strong>Settings</strong><small>Appearance, team and support</small></span>${icon('chevron')}</summary>
-    <div class="admin-panel" aria-label="Settings">
-      <div class="admin-appearance"><strong>Appearance</strong><div class="theme-controls" role="group" aria-label="Appearance">
+  return `<div class="admin-appearance"><strong>Appearance</strong><div class="theme-controls" role="group" aria-label="Appearance">
         ${Object.entries(themes).map(([key,[name,symbol]]) => `<button type="button" data-action="theme" data-id="${key}" aria-pressed="${themePreference===key}">${icon(symbol)}${name}</button>`).join('')}
       </div>${fontSizeControl()}</div>
       <nav aria-label="Team and support">
         ${support.map(([path,label,symbol]) => `<a href="#/${path}"${page===path?' aria-current="page"':''}>${icon(symbol)}${label}</a>`).join('')}
         <button type="button" data-action="ov-aurora">${icon('message')} Ask Aurora</button>
-      </nav>
-    </div>
-  </details>`;
+      </nav>`;
 }
 
 // Shortcuts under a menu item: [target, label, how many records it will show].
@@ -1765,12 +1768,15 @@ function sideMenu(page, detail) {
   };
   const group = (label, content) => `<div class="nav-group"><div class="nav-label">${label}</div>${content}</div>`;
   const unread = unreadCount();
-  const ready = available().length;
-  const onTrip = openTrips().length;
   return group('Main menu', ['dispatch','available','loading','tracking','deliveries'].map(item).join('') +
       row('notifications','Notifications','bell',`<em data-unread-count ${unread?'':'hidden'}>${unread}</em>${unread?'<i class="unread"></i>':''}`)) +
-    group('Fleet', ['fleet','verification','depots'].map(item).join('')) +
-    `<a class="side-card" href="#/available">
+    group('Fleet', ['fleet','verification','depots'].map(item).join(''));
+}
+
+function fleetToday() {
+  const ready = available().length;
+  const onTrip = openTrips().length;
+  return `<a class="side-card" href="#/available">
       <span class="side-card-head">${tile('truck')}<span><strong>Fleet today</strong><small>${state.fleet.length} trucks registered</small></span></span>
       <progress value="${ready}" max="${Math.max(state.fleet.length,1)}" aria-label="${ready} of ${state.fleet.length} trucks ready"></progress>
       <span class="side-card-foot"><span><b>${ready}</b> ready</span><span><b>${onTrip}</b> on a trip</span></span>
@@ -1802,12 +1808,6 @@ function followShortcut(id) {
   }
 }
 
-function closeAdministration(restoreFocus=false) {
-  const menu = app.querySelector('.admin-dropup[open]');
-  if (!menu) return;
-  menu.open = false;
-  if (restoreFocus) menu.querySelector('summary').focus();
-}
 function policySections(sections) {
   return sections.map(([heading,copy])=>`<section class="guidance-section"><h3>${esc(heading)}</h3><p>${esc(copy)}</p></section>`).join('');
 }
@@ -1845,7 +1845,7 @@ function render({focus=false}={}) {
       <button type="button" class="side-search" data-action="search" title="Search">${icon('search')}<span>Search</span><kbd>Ctrl K</kbd></button>
       <nav class="side-scroll" aria-label="Main navigation">${sideMenu(page,id)}</nav>
       <div class="side-footer">
-        ${administration(page)}${profileMenu(viewer)}</div>
+        ${fleetToday()}${profileMenu(viewer,page)}</div>
     </aside>
     <button type="button" class="overlay ${navOpen?'open':''}" tabindex="-1" aria-label="Close navigation" data-action="menu"></button>
     <div class="workspace"${navOpen?' inert':''}><header class="top"><button type="button" class="icon-btn" data-action="menu" aria-expanded="${navOpen}" aria-controls="side" aria-label="Open navigation">${icon('menu')}</button>
@@ -1858,7 +1858,6 @@ function render({focus=false}={}) {
   if (menu) menu.scrollTop = menuScroll;
   document.body.classList.toggle('account-access',auth);
   if (page==='driver-sign-in') mountDriverAccess(app.querySelector('#driver-entry'));
-  mountTruck();
   mountPhotos();
   renderAurora();
   if (focus) document.querySelector('h1')?.focus({preventScroll:true});
@@ -1907,7 +1906,10 @@ function openSearch() {
   if (!modal.open) modal.showModal();
   modal.querySelector('input').focus();
 }
-modal.addEventListener('close', () => modal.classList.remove('search-dialog','preview-dialog'));
+modal.addEventListener('close', () => {
+  if (modal.classList.contains('ov-vehicle-dialog') && truckViewer?.spinning) truckViewer.toggleSpin();
+  modal.classList.remove('search-dialog','preview-dialog','ov-vehicle-dialog','ov-main');
+});
 modal.addEventListener('input', e => {
   if (e.target.id === 'quick-search') modal.querySelector('.search-list').innerHTML = searchResults(e.target.value);
 });
@@ -1947,7 +1949,10 @@ function sortTable(button) {
   body.append(...[...body.rows].sort((a,b) => value(a).localeCompare(value(b),undefined,{numeric:true}) * (direction === 'ascending' ? 1 : -1)));
 }
 
-function openModal(title, html) {
+function openModal(title, html, {vehicle=false}={}) {
+  if (!vehicle && modal.classList.contains('ov-vehicle-dialog') && truckViewer?.spinning) truckViewer.toggleSpin();
+  modal.classList.toggle('ov-vehicle-dialog',vehicle);
+  modal.classList.toggle('ov-main',vehicle);
   modal.innerHTML = `<div class="card-head"><h2 id="dialog-title">${esc(title)}</h2>${iconBtn('close','Close dialog','close')}</div><div class="dialog-body">${html}</div>`;
   if (!modal.open) modal.showModal();
 }
@@ -2140,7 +2145,6 @@ document.addEventListener('input',e=>{
 
 document.addEventListener('click', e=>{
   if (!e.target.closest('.account-dropdown') || e.target.closest('.account-options a')) setProfileOpen(false);
-  if (!e.target.closest('.admin-dropup') || e.target.closest('.admin-panel a')) closeAdministration();
   const el = e.target.closest('[data-action]');
   if (!el) {
     const row = e.target.closest('.registry-table tbody tr');
@@ -2191,11 +2195,8 @@ document.addEventListener('click', e=>{
     app.querySelector(`#side-sub-${id}`).hidden = !open;
   } else if (action==='side-go') {
     followShortcut(id);
-  } else if (action==='ov-track') {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    e.preventDefault();
-    trackPending = id;
-    go('tracking');
+  } else if (action==='ov-map-vehicle') {
+    openOverviewVehicle(id);
   } else if (action.startsWith('lb-')) {
     updateBays(action,id);
   } else if (action.startsWith('nt-')) {
@@ -2250,7 +2251,11 @@ document.addEventListener('click', e=>{
   else if (['ov-ride','ov-filter','ov-step','ov-view','ov-spin'].includes(action)) {
     updateOverview(action,id);
   } else if (action==='ov-aurora') {
-    closeAdministration();
+    setProfileOpen(false);
+    if (navOpen) {
+      navOpen = false;
+      render();
+    }
     toggleAurora(true);
   } else if (action==='sign-out') {
     rememberAccount('');
@@ -2424,10 +2429,6 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if (e.key==='Escape' && !modal.open) {
-    if (app.querySelector('.admin-dropup[open]')) {
-      closeAdministration(true);
-      return;
-    }
     if (app.querySelector('.profile-trigger[aria-expanded="true"]')) {
       setProfileOpen(false,true);
       return;
@@ -2439,7 +2440,7 @@ document.addEventListener('keydown',e=>{
     navOpen=false; render(); app.querySelector('[aria-controls="side"]')?.focus();
   }
   if (e.key==='Tab' && navOpen && !modal.open) {
-    const items=[...app.querySelectorAll('.sidebar a,.sidebar button,.sidebar summary')].filter(item => item.getClientRects().length && !item.closest('.admin-dropup:not([open]) .admin-panel'));
+    const items=[...app.querySelectorAll('.sidebar a,.sidebar button,.sidebar summary,.sidebar select')].filter(item => item.getClientRects().length);
     if (e.shiftKey && document.activeElement===items[0]) { e.preventDefault(); items.at(-1).focus(); }
     else if (!e.shiftKey && document.activeElement===items.at(-1)) { e.preventDefault(); items[0].focus(); }
   }
